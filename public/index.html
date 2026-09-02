@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bingekeeper — TV & Movies Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --bg-2: #eaedf5;
+    --surface: #ffffff;
+    --surface-2: #f0f2f9;
+    --line: #e3e6f0;
+    --text: #1a1d29;
+    --muted: #656d82;
+    --faint: #9aa1b4;
+    --accent: #2f6df6;
+    --accent-2: #1e56d6;
+    --good: #17b877;
+    --good-dim: #e2f6ee;
+    --danger: #e11d48;
+    --radius: 6px;
+    --shadow: 0 12px 34px -14px rgba(30,34,90,.22);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    background: radial-gradient(1200px 600px at 80% -10%, #e1ebff 0%, transparent 55%),
+                radial-gradient(900px 500px at -10% 10%, #dcefff 0%, transparent 50%),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: "Sora", sans-serif; margin: 0; letter-spacing: -0.02em; }
+  a { color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 30;
+    backdrop-filter: blur(14px);
+    background: rgba(255,255,255,.75);
+    border-bottom: 1px solid var(--line);
+  }
+  .head-inner {
+    max-width: 1080px; margin: 0 auto; padding: 12px 20px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; font-family: "Sora"; font-weight: 700; font-size: 20px; white-space: nowrap; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 6px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), #4f9dff);
+    box-shadow: 0 6px 18px -6px var(--accent);
+    font-size: 18px;
+  }
+  .brand span { color: var(--accent-2); }
+
+  /* Tab navigation */
+  .tab-nav { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 3px; gap: 2px; }
+  .tab-btn {
+    border: none; background: transparent; color: var(--muted); padding: 8px 15px;
+    border-radius: 4px; font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.on { background: var(--accent); color: #fff; }
+
+  /* Add button */
+  .add-btn {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 6px;
+    font-size: 14px; font-weight: 600; transition: background .2s, transform .1s;
+    box-shadow: 0 6px 16px -8px var(--accent); white-space: nowrap;
+  }
+  .add-btn:hover { background: var(--accent-2); }
+  .add-btn:active { transform: scale(.97); }
+
+  /* Modals */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200; background: rgba(20,24,45,.45); backdrop-filter: blur(4px);
+    display: flex; align-items: flex-start; justify-content: center; padding: 11vh 20px 20px;
+    animation: fade .18s ease;
+  }
+  .modal-overlay[hidden] { display: none; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .modal-card {
+    width: 100%; max-width: 560px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: var(--shadow); padding: 18px;
+    animation: pop .22s cubic-bezier(.2,.9,.3,1.2);
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(-12px) scale(.98); } to { opacity: 1; transform: none; } }
+  .modal-head { display: flex; gap: 10px; align-items: center; }
+  .search-box { position: relative; flex: 1; }
+  .search-box input {
+    width: 100%; padding: 12px 14px 12px 42px;
+    background: var(--bg); border: 1px solid var(--line); color: var(--text);
+    border-radius: 6px; font-size: 15px; outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,109,246,.18); }
+  .search-box .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--faint); display: flex; }
+  .modal-close {
+    flex-shrink: 0; width: 42px; height: 42px; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--muted); display: grid; place-items: center; transition: background .15s, color .15s;
+  }
+  .modal-close:hover { background: var(--surface-2); color: var(--text); }
+  .results { margin-top: 14px; max-height: 56vh; overflow-y: auto; }
+  .res-item {
+    display: flex; gap: 12px; padding: 10px 12px; align-items: center;
+    border-bottom: 1px solid var(--line); transition: background .12s;
+  }
+  .res-item:last-child { border-bottom: none; }
+  .res-item:hover { background: var(--surface-2); }
+  .res-item img, .res-thumb {
+    width: 46px; height: 66px; border-radius: 4px; object-fit: cover; flex-shrink: 0;
+    background: var(--bg-2); display: grid; place-items: center; color: var(--faint); font-size: 20px;
+  }
+  .res-meta { flex: 1; min-width: 0; }
+  .res-meta .t { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .res-meta .s { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .res-add {
+    padding: 8px 14px; border-radius: 5px; border: none; font-weight: 600; font-size: 13px;
+    background: var(--accent); color: white; flex-shrink: 0; transition: transform .1s, background .2s;
+  }
+  .res-add:hover { background: var(--accent-2); }
+  .res-add:active { transform: scale(.95); }
+  .res-add.added { background: rgba(47,109,246,.12); color: var(--accent); cursor: default; }
+  .res-empty, .res-loading { padding: 20px; text-align: center; color: var(--muted); font-size: 14px; }
+
+  /* Hero */
+  .hero { padding: 40px 0 26px; }
+  .hero h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.05; }
+  .hero p { color: var(--muted); margin: 12px 0 0; font-size: 16px; max-width: 560px; }
+  .stats { display: flex; gap: 26px; margin-top: 24px; flex-wrap: wrap; }
+  .stat .n { font-family: "Sora"; font-weight: 700; font-size: 26px; }
+  .stat .l { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 4px 0 22px; }
+  .lib-search { position: relative; flex: 1; min-width: 190px; max-width: 320px; }
+  .lib-search input {
+    width: 100%; padding: 10px 12px 10px 38px; background: var(--surface); border: 1px solid var(--line);
+    color: var(--text); border-radius: 6px; font-size: 14px; outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .lib-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,109,246,.15); }
+  .lib-search .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--faint); display: flex; }
+  .segmented { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 3px; gap: 2px; }
+  .segmented button {
+    border: none; background: transparent; color: var(--muted); padding: 7px 13px; border-radius: 4px;
+    font-size: 13px; font-weight: 500; transition: background .15s, color .15s; white-space: nowrap;
+  }
+  .segmented button:hover { color: var(--text); }
+  .segmented button.on { background: var(--accent); color: #fff; }
+  .lib-sort { margin-left: auto; }
+  .lib-sort select {
+    appearance: none; -webkit-appearance: none; background: var(--surface); border: 1px solid var(--line);
+    color: var(--text); padding: 10px 34px 10px 13px; border-radius: 6px; font-size: 14px; font-family: inherit;
+    cursor: pointer; outline: none; transition: border-color .2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239aa1b4' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  .lib-sort select:focus { border-color: var(--accent); }
+
+  /* Show/Movie grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 8px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; cursor: pointer; transition: transform .18s, border-color .18s, box-shadow .18s;
+    display: flex; flex-direction: column;
+  }
+  .card:hover { transform: translateY(-3px); border-color: #34406b; box-shadow: var(--shadow); }
+  .poster { aspect-ratio: 2/3; background: var(--bg-2); position: relative; overflow: hidden; }
+  .poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .poster .ph { width: 100%; height: 100%; display: grid; place-items: center; color: var(--faint); font-size: 32px; }
+  .badge {
+    position: absolute; top: 7px; right: 7px; z-index: 2; padding: 3px 7px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; backdrop-filter: blur(6px);
+    background: rgba(255,255,255,.88); color: var(--text); border: 1px solid var(--line);
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  }
+  .badge.done { background: rgba(47,109,246,.95); color: #ffffff; border-color: transparent; }
+  .badge.watched { background: rgba(23,184,119,.95); color: #ffffff; border-color: transparent; }
+  .card-body { padding: 9px 10px 11px; }
+  .card-body .name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-body .sub { color: var(--muted); font-size: 11px; margin: 3px 0 8px; }
+  .bar { height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 3px; transition: width .5s ease; }
+  .bar.full > i { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .prog-txt { display: flex; justify-content: space-between; font-size: 10.5px; margin-top: 6px; color: var(--muted); }
+  .prog-txt b { color: var(--text); font-weight: 600; }
+
+  /* Movie card — no progress bar, just a simple status line */
+  .movie-status { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--muted); }
+  .movie-status.on { color: var(--good); }
+  .movie-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex-shrink: 0; }
+  .movie-status.on .dot { background: var(--good); }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 70px 20px; border: 1.5px dashed var(--line); border-radius: 8px; margin-top: 10px; }
+  .empty .em { font-size: 46px; }
+  .empty h3 { font-size: 20px; margin: 14px 0 6px; }
+  .empty p { color: var(--muted); margin: 0 auto; max-width: 380px; }
+
+  /* Detail views */
+  .back {
+    display: inline-flex; align-items: center; gap: 7px; margin: 24px 0 20px;
+    background: var(--surface); border: 1px solid var(--line); color: var(--text);
+    padding: 9px 15px; border-radius: 6px; font-size: 14px; font-weight: 500; transition: background .15s;
+  }
+  .back:hover { background: var(--surface-2); }
+  .show-head { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 30px; }
+  .show-head .poster-lg {
+    width: 190px; aspect-ratio: 2/3; border-radius: 6px; overflow: hidden; flex-shrink: 0;
+    background: var(--bg-2); box-shadow: var(--shadow);
+  }
+  .show-head .poster-lg img { width: 100%; height: 100%; object-fit: cover; }
+  .show-head .poster-lg .ph { display: grid; place-items: center; height: 100%; font-size: 46px; color: var(--faint); }
+  .show-info { flex: 1; min-width: 260px; }
+  .show-info h1 { font-size: clamp(26px, 4vw, 36px); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .chip { padding: 5px 11px; border-radius: 3px; font-size: 12.5px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); }
+  .chip.status { color: var(--accent-2); }
+  .summary { color: var(--muted); line-height: 1.6; font-size: 15px; max-width: 640px; }
+  .show-actions { display: flex; gap: 12px; margin-top: 18px; align-items: center; flex-wrap: wrap; }
+  .overall {
+    display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line);
+    padding: 12px 16px; border-radius: 6px; min-width: 240px;
+  }
+  .overall .ring { flex-shrink: 0; }
+  .overall .txt .big { font-family: "Sora"; font-weight: 700; font-size: 20px; }
+  .overall .txt .small { color: var(--muted); font-size: 12.5px; }
+  .btn-danger {
+    background: transparent; border: 1px solid var(--line); color: var(--danger);
+    padding: 10px 15px; border-radius: 6px; font-size: 13.5px; font-weight: 500; transition: background .15s, border-color .15s;
+  }
+  .btn-danger:hover { background: rgba(255,92,114,.1); border-color: var(--danger); }
+
+  /* Movie watched action button */
+  .btn-watched {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 13px 22px; border-radius: 6px; font-size: 15px; font-weight: 600;
+    border: none; transition: background .15s, transform .1s, box-shadow .15s; cursor: pointer;
+  }
+  .btn-watched.off { background: var(--accent); color: #fff; box-shadow: 0 6px 16px -8px var(--accent); }
+  .btn-watched.off:hover { background: var(--accent-2); }
+  .btn-watched.on { background: var(--good-dim); color: var(--good); border: 1px solid rgba(23,184,119,.3); }
+  .btn-watched.on:hover { background: #c7f0de; }
+  .btn-watched:active { transform: scale(.97); }
+
+  /* TV Seasons */
+  .season { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 14px; overflow: hidden; background: var(--surface); }
+  .season-head {
+    display: flex; align-items: center; gap: 14px; padding: 15px 18px; cursor: pointer;
+    user-select: none; transition: background .15s;
+  }
+  .season-head:hover { background: var(--surface-2); }
+  .season-head .caret { transition: transform .2s; color: var(--muted); }
+  .season.open .caret { transform: rotate(90deg); }
+  .season-head .st { font-family: "Sora"; font-weight: 600; font-size: 16px; }
+  .season-head .scount { color: var(--muted); font-size: 13px; }
+  .season-head .mini-bar { flex: 1; max-width: 200px; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-left: auto; }
+  .season-head .mini-bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .season-toggle {
+    padding: 7px 12px; border-radius: 4px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--line);
+    background: var(--bg-2); color: var(--text); white-space: nowrap; transition: background .15s;
+  }
+  .season-toggle:hover { background: var(--surface-2); }
+  .eps { display: none; border-top: 1px solid var(--line); }
+  .season.open .eps { display: block; }
+  .ep {
+    display: flex; align-items: center; gap: 14px; padding: 12px 18px;
+    border-bottom: 1px solid var(--line); transition: background .12s;
+  }
+  .ep:last-child { border-bottom: none; }
+  .ep:hover { background: var(--surface-2); }
+  .ep.done .ep-name { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
+  .check {
+    width: 24px; height: 24px; border-radius: 4px; border: 2px solid var(--line);
+    flex-shrink: 0; display: grid; place-items: center; cursor: pointer;
+    transition: background .15s, border-color .15s, transform .1s; background: transparent;
+    padding: 0; line-height: 0;
+  }
+  .check:hover { border-color: var(--accent); }
+  .check.on { background: var(--accent); border-color: var(--accent); }
+  .check.on:active { transform: scale(.88); }
+  .check svg { opacity: 0; transform: scale(.5); transition: opacity .15s, transform .15s; }
+  .check.on svg { opacity: 1; transform: scale(1); }
+  .ep-num { font-family: "Sora"; font-weight: 600; font-size: 13px; color: var(--faint); width: 42px; flex-shrink: 0; }
+  .ep-main { flex: 1; min-width: 0; cursor: pointer; }
+  .ep-name { font-weight: 500; font-size: 14.5px; }
+  .ep-meta { color: var(--faint); font-size: 12px; margin-top: 3px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px);
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+    padding: 13px 20px; border-radius: 6px; font-size: 14px; box-shadow: var(--shadow);
+    z-index: 100; transition: transform .35s cubic-bezier(.2,.9,.3,1.3); display: flex; gap: 10px; align-items: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.err { border-color: var(--danger); }
+  .spinner { width: 18px; height: 18px; border: 2.5px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .center-load { display: flex; justify-content: center; padding: 60px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  @media (max-width: 600px) {
+    .head-inner { gap: 10px; }
+    .brand { font-size: 17px; }
+    .tab-btn { padding: 7px 10px; font-size: 12.5px; }
+    .add-btn { padding: 9px 12px; font-size: 13px; }
+    .modal-overlay { padding: 6vh 14px 14px; }
+    .show-head .poster-lg { width: 130px; margin: 0 auto; }
+    .grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .card-body { padding: 7px 8px 9px; }
+    .card-body .name { font-size: 11.5px; }
+    .card-body .sub { font-size: 10px; margin: 2px 0 6px; }
+    .badge { font-size: 9px; padding: 2px 5px; top: 5px; right: 5px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="brand">
+      <div class="logo">🎬</div>
+      Binge<span>keeper</span>
+    </div>
+    <nav class="tab-nav">
+      <button class="tab-btn on" data-tab="tv">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="m17 2-5 5-5-5"/></svg>TV Shows
+      </button>
+      <button class="tab-btn" data-tab="movies">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>Movies
+      </button>
+    </nav>
+    <button class="add-btn" id="addBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span id="addBtnLabel">Add a show</span>
+    </button>
+  </div>
+</header>
+
+<!-- TV SEARCH MODAL -->
+<div class="modal-overlay" id="searchModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Search TV shows">
+    <div class="modal-head">
+      <div class="search-box">
+        <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input id="tvSearch" type="text" placeholder="Search any TV show…" autocomplete="off" />
+      </div>
+      <button class="modal-close" id="closeTvSearch" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="results" id="tvResults"></div>
+  </div>
+</div>
+
+<!-- MOVIE SEARCH MODAL -->
+<div class="modal-overlay" id="movieSearchModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Search movies">
+    <div class="modal-head">
+      <div class="search-box">
+        <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input id="movieSearch" type="text" placeholder="Search any movie…" autocomplete="off" />
+      </div>
+      <button class="modal-close" id="closeMovieSearch" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="results" id="movieResults"></div>
+  </div>
+</div>
+
+<!-- TV HOME -->
+<div id="tvHome">
+  <div class="wrap">
+    <section class="hero">
+      <h1>Your shows, tracked to the episode.</h1>
+      <p>Search for any series, add it, and tick off episodes season by season. Your progress is saved automatically.</p>
+    </section>
+    <div class="toolbar" id="tvToolbar" style="display:none">
+      <div class="lib-search">
+        <span class="icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input id="libSearch" type="text" placeholder="Search your shows…" autocomplete="off" />
+      </div>
+      <div class="segmented" id="libFilter">
+        <button data-filter="all" class="on">All</button>
+        <button data-filter="progress">In progress</button>
+        <button data-filter="finished">Finished</button>
+        <button data-filter="notstarted">Not started</button>
+      </div>
+      <div class="lib-sort">
+        <select id="libSort">
+          <option value="added">Recently added</option>
+          <option value="az">Title A–Z</option>
+          <option value="za">Title Z–A</option>
+          <option value="newest">Release: newest</option>
+          <option value="oldest">Release: oldest</option>
+        </select>
+      </div>
+    </div>
+    <div id="tvLibrary"></div>
+  </div>
+</div>
+
+<!-- TV DETAIL -->
+<div id="tvDetail" style="display:none">
+  <div class="wrap" id="tvDetailBody"></div>
+</div>
+
+<!-- MOVIES HOME -->
+<div id="moviesHome" style="display:none">
+  <div class="wrap">
+    <section class="hero">
+      <h1>Your watchlist, tracked.</h1>
+      <p>Search for any film, add it to your list, and mark it watched when you're done.</p>
+    </section>
+    <div class="toolbar" id="moviesToolbar" style="display:none">
+      <div class="lib-search">
+        <span class="icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input id="moviesLibSearch" type="text" placeholder="Search your movies…" autocomplete="off" />
+      </div>
+      <div class="segmented" id="moviesFilter">
+        <button data-filter="all" class="on">All</button>
+        <button data-filter="watched">Watched</button>
+        <button data-filter="unwatched">Watchlist</button>
+      </div>
+      <div class="lib-sort">
+        <select id="moviesSort">
+          <option value="added">Recently added</option>
+          <option value="az">Title A–Z</option>
+          <option value="za">Title Z–A</option>
+          <option value="newest">Release: newest</option>
+          <option value="oldest">Release: oldest</option>
+        </select>
+      </div>
+    </div>
+    <div id="moviesLibrary"></div>
+  </div>
+</div>
+
+<!-- MOVIE DETAIL -->
+<div id="moviesDetail" style="display:none">
+  <div class="wrap" id="moviesDetailBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const api = async (path, opts) => {
+  const r = await fetch(path, opts);
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || "Request failed"); }
+  return r.json();
+};
+const esc = (s) => (s ?? "").toString().replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ---------- Page routing ----------
+const pages = ["tvHome", "tvDetail", "moviesHome", "moviesDetail"];
+function showPage(id) {
+  pages.forEach((p) => { document.getElementById(p).style.display = p === id ? "block" : "none"; });
+  window.scrollTo(0, 0);
+}
+
+// ---------- Tab switching ----------
+let activeTab = "tv";
+function switchTab(tab) {
+  activeTab = tab;
+  location.hash = tab;
+  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
+  $("#addBtnLabel").textContent = tab === "tv" ? "Add a show" : "Add a movie";
+  if (tab === "tv") {
+    showPage("tvHome");
+  } else {
+    showPage("moviesHome");
+    loadMovies();
+  }
+}
+document.querySelectorAll(".tab-btn").forEach((b) => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+$("#addBtn").addEventListener("click", () => {
+  if (activeTab === "tv") openTvSearchModal();
+  else openMovieSearchModal();
+});
+
+// ---------- Toast ----------
+let toastTimer;
+function toast(msg, isErr = false) {
+  const t = $("#toast");
+  t.innerHTML = (isErr ? "⚠️ " : "✓ ") + esc(msg);
+  t.classList.toggle("err", isErr);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+// ============================================================
+// TV SHOWS
+// ============================================================
+
+// --- TV Search modal ---
+const tvSearchInput = $("#tvSearch");
+const tvResultsEl = $("#tvResults");
+const tvSearchModal = $("#searchModal");
+let tvSearchTimer, tvLastQuery = "";
+let addedShowIds = new Set();
+
+const TV_HINT = '<div class="res-empty">Start typing to search thousands of TV shows…</div>';
+
+function openTvSearchModal() {
+  tvSearchModal.hidden = false;
+  document.body.style.overflow = "hidden";
+  tvSearchInput.value = "";
+  tvLastQuery = "";
+  tvResultsEl.innerHTML = TV_HINT;
+  setTimeout(() => tvSearchInput.focus(), 40);
+}
+function closeTvSearchModal() { tvSearchModal.hidden = true; document.body.style.overflow = ""; }
+
+$("#closeTvSearch").addEventListener("click", closeTvSearchModal);
+tvSearchModal.addEventListener("click", (e) => { if (e.target === tvSearchModal) closeTvSearchModal(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { if (!tvSearchModal.hidden) closeTvSearchModal(); if (!movieSearchModal.hidden) closeMovieSearchModal(); }
+});
+
+tvSearchInput.addEventListener("input", () => {
+  const q = tvSearchInput.value.trim();
+  clearTimeout(tvSearchTimer);
+  if (!q) { tvLastQuery = ""; tvResultsEl.innerHTML = TV_HINT; return; }
+  tvResultsEl.innerHTML = '<div class="res-loading">Searching…</div>';
+  tvSearchTimer = setTimeout(() => runTvSearch(q), 280);
+});
+
+async function runTvSearch(q) {
+  tvLastQuery = q;
+  try {
+    const res = await api("/api/search?q=" + encodeURIComponent(q));
+    if (q !== tvLastQuery) return;
+    if (!res.length) { tvResultsEl.innerHTML = '<div class="res-empty">No shows found for "' + esc(q) + '"</div>'; return; }
+    tvResultsEl.innerHTML = res.map((s) => `
+      <div class="res-item" data-id="${s.id}">
+        ${s.image ? `<img src="${esc(s.image)}" alt="${esc(s.name)}" loading="lazy">` : `<div class="res-thumb">📺</div>`}
+        <div class="res-meta">
+          <div class="t">${esc(s.name)}</div>
+          <div class="s">${[s.premiered ? s.premiered.slice(0,4) : null, s.network, s.genres.slice(0,2).join(", ")].filter(Boolean).join(" · ")}</div>
+        </div>
+        <button class="res-add ${addedShowIds.has(s.id) ? "added" : ""}" data-add="${s.id}">${addedShowIds.has(s.id) ? "Added" : "+ Add"}</button>
+      </div>`).join("");
+  } catch (e) { tvResultsEl.innerHTML = '<div class="res-empty">' + esc(e.message) + "</div>"; }
+}
+
+tvResultsEl.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-add]");
+  if (!btn) return;
+  const id = Number(btn.dataset.add);
+  if (addedShowIds.has(id)) return;
+  btn.disabled = true; btn.textContent = "Adding…";
+  try {
+    const r = await api("/api/shows", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    addedShowIds.add(id);
+    btn.textContent = "Added"; btn.classList.add("added");
+    toast(r.alreadyAdded ? "Already in your library" : "Added — " + (r.episodeCount || 0) + " episodes");
+    await loadTvLibrary();
+  } catch (err) { toast(err.message, true); btn.disabled = false; btn.textContent = "+ Add"; }
+});
+
+// --- TV Library ---
+let libraryShows = [], libFilter = "all", libSort = "added", libQuery = "";
+
+function statusOf(s) {
+  if (!s.total || s.watched === 0) return "notstarted";
+  if (s.watched >= s.total) return "finished";
+  return "progress";
+}
+
+function initTvLibraryControls() {
+  $("#libSearch").addEventListener("input", (e) => { libQuery = e.target.value.trim().toLowerCase(); renderTvLibrary(); });
+  $("#libFilter").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-filter]");
+    if (!b) return;
+    libFilter = b.dataset.filter;
+    $("#libFilter").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    renderTvLibrary();
+  });
+  $("#libSort").addEventListener("change", (e) => { libSort = e.target.value; renderTvLibrary(); });
+}
+
+async function loadTvLibrary() {
+  try { libraryShows = await api("/api/shows"); } catch { libraryShows = []; }
+  addedShowIds = new Set(libraryShows.map((s) => s.id));
+  renderTvLibrary();
+}
+
+function renderTvLibrary() {
+  const lib = $("#tvLibrary");
+  const toolbar = $("#tvToolbar");
+  if (!libraryShows.length) {
+    toolbar.style.display = "none";
+    lib.innerHTML = `<div class="empty"><div class="em">🍿</div><h3>No shows yet</h3><p>Use the button above to find a show — try "Breaking Bad", "The Office", or anything you're watching.</p></div>`;
+    return;
+  }
+  toolbar.style.display = "";
+  let list = libraryShows.slice();
+  if (libFilter !== "all") list = list.filter((s) => statusOf(s) === libFilter);
+  if (libQuery) list = list.filter((s) => s.name.toLowerCase().includes(libQuery));
+  const cmp = { added: (a,b) => (b.added_at||0)-(a.added_at||0), az: (a,b) => a.name.localeCompare(b.name), za: (a,b) => b.name.localeCompare(a.name), newest: (a,b) => (b.premiered||"").localeCompare(a.premiered||""), oldest: (a,b) => (a.premiered||"0000").localeCompare(b.premiered||"9999") }[libSort];
+  if (cmp) list.sort(cmp);
+  if (!list.length) {
+    lib.innerHTML = `<div class="empty"><div class="em">🔍</div><h3>No matches</h3><p>No shows match your current filter${libQuery ? " and search" : ""}.</p></div>`;
+    return;
+  }
+  lib.innerHTML = `<div class="grid">${list.map(tvCardHtml).join("")}</div>`;
+  lib.querySelectorAll(".card").forEach((c) => c.addEventListener("click", () => openShow(Number(c.dataset.id))));
+}
+
+function tvCardHtml(s) {
+  const pct = s.total ? Math.round((s.watched / s.total) * 100) : 0;
+  const done = s.total > 0 && s.watched === s.total;
+  return `
+    <div class="card" data-id="${s.id}">
+      <div class="poster">
+        ${s.image ? `<img src="${esc(s.image)}" alt="${esc(s.name)}" loading="lazy">` : `<div class="ph">📺</div>`}
+        <div class="badge ${done ? "done" : ""}">${done ? "✓ Done" : pct + "%"}</div>
+      </div>
+      <div class="card-body">
+        <div class="name">${esc(s.name)}</div>
+        <div class="sub">${[s.premiered ? s.premiered.slice(0,4) : null, s.status].filter(Boolean).join(" · ") || "&nbsp;"}</div>
+        <div class="bar ${done ? "full" : ""}"><i style="width:${pct}%"></i></div>
+        <div class="prog-txt"><span><b>${s.watched}</b> / ${s.total} eps</span><span>${pct}%</span></div>
+      </div>
+    </div>`;
+}
+
+// --- TV Detail ---
+let currentShow = null;
+
+function ring(pct, size = 52) {
+  const r = (size - 8) / 2, c = 2 * Math.PI * r, off = c - (pct / 100) * c;
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="6"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 ${size/2} ${size/2})" style="transition:stroke-dashoffset .5s"/>
+    <text x="50%" y="50%" text-anchor="middle" dy=".35em" fill="var(--text)" font-size="13" font-weight="700" font-family="Sora">${pct}%</text>
+  </svg>`;
+}
+
+async function openShow(id) {
+  showPage("tvDetail");
+  $("#tvDetailBody").innerHTML = '<div class="center-load"><div class="spinner"></div></div>';
+  try { currentShow = await api("/api/shows/" + id); renderShowDetail(); }
+  catch (e) { $("#tvDetailBody").innerHTML = '<div class="empty"><p>' + esc(e.message) + "</p></div>"; }
+}
+
+function closeShow() { currentShow = null; showPage("tvHome"); loadTvLibrary(); }
+
+function seasonStats(s) {
+  const total = s.episodes.length, watched = s.episodes.filter((e) => e.watched).length;
+  return { total, watched, pct: total ? Math.round((watched / total) * 100) : 0 };
+}
+
+function renderShowDetail() {
+  const s = currentShow;
+  const total = s.seasons.reduce((a, x) => a + x.episodes.length, 0);
+  const watched = s.seasons.reduce((a, x) => a + x.episodes.filter((e) => e.watched).length, 0);
+  const pct = total ? Math.round((watched / total) * 100) : 0;
+  const seasonLabel = (n) => (n === 0 ? "Specials" : "Season " + n);
+  $("#tvDetailBody").innerHTML = `
+    <button class="back" id="tvBackBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      Library
+    </button>
+    <div class="show-head">
+      <div class="poster-lg">${s.image ? `<img src="${esc(s.image)}" alt="${esc(s.name)}">` : `<div class="ph">📺</div>`}</div>
+      <div class="show-info">
+        <h1>${esc(s.name)}</h1>
+        <div class="chips">
+          ${s.status ? `<span class="chip status">${esc(s.status)}</span>` : ""}
+          ${s.premiered ? `<span class="chip">${s.premiered.slice(0,4)}${s.ended ? "–" + s.ended.slice(0,4) : ""}</span>` : ""}
+          ${s.network ? `<span class="chip">${esc(s.network)}</span>` : ""}
+          ${(s.genres || []).slice(0,3).map((g) => `<span class="chip">${esc(g)}</span>`).join("")}
+        </div>
+        <p class="summary">${esc(s.summary) || "No description available."}</p>
+        <div class="show-actions">
+          <div class="overall">
+            ${ring(pct)}
+            <div class="txt"><div class="big" id="ov-count">${watched} / ${total}</div><div class="small">episodes watched</div></div>
+          </div>
+          <button class="btn-danger" id="removeShowBtn">Remove show</button>
+        </div>
+      </div>
+    </div>
+    <div id="seasons">
+      ${s.seasons.map((sea) => {
+        const st = seasonStats(sea);
+        const allDone = st.total > 0 && st.watched === st.total;
+        return `
+        <div class="season ${allDone ? "" : "open"}" data-season="${sea.season}">
+          <div class="season-head">
+            <span class="caret"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg></span>
+            <span class="st">${seasonLabel(sea.season)}</span>
+            <span class="scount">${st.watched}/${st.total}</span>
+            <span class="mini-bar ${allDone ? "full" : ""}"><i style="width:${st.pct}%"></i></span>
+            <button class="season-toggle" data-toggle-season="${sea.season}" data-target="${allDone ? 0 : 1}">${allDone ? "Unmark all" : "Mark all"}</button>
+          </div>
+          <div class="eps">${sea.episodes.map((e) => epHtml(e)).join("")}</div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  $("#tvBackBtn").addEventListener("click", closeShow);
+  $("#removeShowBtn").addEventListener("click", removeCurrentShow);
+  wireShowDetail();
+}
+
+function epHtml(e) {
+  const meta = [e.airdate || null, e.runtime ? e.runtime + " min" : null].filter(Boolean).join(" · ");
+  return `
+    <div class="ep ${e.watched ? "done" : ""}" data-ep="${e.id}">
+      <button class="check ${e.watched ? "on" : ""}" data-check="${e.id}" aria-label="Mark watched">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </button>
+      <span class="ep-num">${e.number != null ? "E" + String(e.number).padStart(2, "0") : "—"}</span>
+      <div class="ep-main">
+        <div class="ep-name">${esc(e.name) || "Episode " + (e.number ?? "")}</div>
+        ${meta ? `<div class="ep-meta">${esc(meta)}</div>` : ""}
+      </div>
+    </div>`;
+}
+
+function wireShowDetail() {
+  $("#seasons").querySelectorAll(".season-head").forEach((h) => {
+    h.addEventListener("click", (e) => {
+      if (e.target.closest("[data-toggle-season]")) return;
+      h.closest(".season").classList.toggle("open");
+    });
+  });
+  $("#seasons").addEventListener("click", onShowDetailClick);
+}
+
+async function onShowDetailClick(e) {
+  const check = e.target.closest("[data-check]");
+  const epMain = e.target.closest(".ep-main");
+  const seasonBtn = e.target.closest("[data-toggle-season]");
+  if (seasonBtn) {
+    const season = Number(seasonBtn.dataset.toggleSeason);
+    const target = seasonBtn.dataset.target === "1";
+    try {
+      await api(`/api/shows/${currentShow.id}/season/${season}/toggle`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ watched: target }) });
+      const sea = currentShow.seasons.find((x) => x.season === season);
+      sea.episodes.forEach((ep) => (ep.watched = target ? 1 : 0));
+      refreshSeason(season); refreshOverall();
+    } catch (err) { toast(err.message, true); }
+    return;
+  }
+  const target = check || epMain;
+  if (!target) return;
+  const epRow = target.closest(".ep");
+  const id = Number(epRow.dataset.ep);
+  try {
+    const r = await api(`/api/episodes/${id}/toggle`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    for (const sea of currentShow.seasons) {
+      const ep = sea.episodes.find((x) => x.id === id);
+      if (ep) { ep.watched = r.watched ? 1 : 0; refreshSeason(sea.season); break; }
+    }
+    refreshOverall();
+  } catch (err) { toast(err.message, true); }
+}
+
+function refreshSeason(season) {
+  const sea = currentShow.seasons.find((x) => x.season === season);
+  const el = $(`.season[data-season="${season}"]`);
+  if (!el || !sea) return;
+  const st = seasonStats(sea);
+  const allDone = st.total > 0 && st.watched === st.total;
+  el.querySelector(".scount").textContent = `${st.watched}/${st.total}`;
+  const mb = el.querySelector(".mini-bar");
+  mb.classList.toggle("full", allDone);
+  mb.querySelector("i").style.width = st.pct + "%";
+  const tog = el.querySelector("[data-toggle-season]");
+  tog.dataset.target = allDone ? 0 : 1;
+  tog.textContent = allDone ? "Unmark all" : "Mark all";
+  sea.episodes.forEach((ep) => {
+    const row = el.querySelector(`.ep[data-ep="${ep.id}"]`);
+    if (!row) return;
+    row.classList.toggle("done", !!ep.watched);
+    row.querySelector(".check").classList.toggle("on", !!ep.watched);
+  });
+}
+
+function refreshOverall() {
+  const total = currentShow.seasons.reduce((a, x) => a + x.episodes.length, 0);
+  const watched = currentShow.seasons.reduce((a, x) => a + x.episodes.filter((e) => e.watched).length, 0);
+  const pct = total ? Math.round((watched / total) * 100) : 0;
+  $("#ov-count").textContent = `${watched} / ${total}`;
+  $(".overall").querySelector(".ring").outerHTML = ring(pct);
+}
+
+async function removeCurrentShow() {
+  if (!confirm(`Remove "${currentShow.name}" and all its tracked progress?`)) return;
+  try { await api("/api/shows/" + currentShow.id, { method: "DELETE" }); toast("Removed from library"); closeShow(); }
+  catch (e) { toast(e.message, true); }
+}
+
+// ============================================================
+// MOVIES
+// ============================================================
+
+// --- Movie Search modal ---
+const movieSearchInput = $("#movieSearch");
+const movieResultsEl = $("#movieResults");
+const movieSearchModal = $("#movieSearchModal");
+let movieSearchTimer, movieLastQuery = "";
+let addedMovieIds = new Set();
+
+const MOVIE_HINT = '<div class="res-empty">Start typing to search movies…</div>';
+
+function openMovieSearchModal() {
+  movieSearchModal.hidden = false;
+  document.body.style.overflow = "hidden";
+  movieSearchInput.value = "";
+  movieLastQuery = "";
+  movieResultsEl.innerHTML = MOVIE_HINT;
+  setTimeout(() => movieSearchInput.focus(), 40);
+}
+function closeMovieSearchModal() { movieSearchModal.hidden = true; document.body.style.overflow = ""; }
+
+$("#closeMovieSearch").addEventListener("click", closeMovieSearchModal);
+movieSearchModal.addEventListener("click", (e) => { if (e.target === movieSearchModal) closeMovieSearchModal(); });
+
+movieSearchInput.addEventListener("input", () => {
+  const q = movieSearchInput.value.trim();
+  clearTimeout(movieSearchTimer);
+  if (!q) { movieLastQuery = ""; movieResultsEl.innerHTML = MOVIE_HINT; return; }
+  movieResultsEl.innerHTML = '<div class="res-loading">Searching…</div>';
+  movieSearchTimer = setTimeout(() => runMovieSearch(q), 280);
+});
+
+async function runMovieSearch(q) {
+  movieLastQuery = q;
+  try {
+    const res = await api("/api/movies/search?q=" + encodeURIComponent(q));
+    if (q !== movieLastQuery) return;
+    if (!res.length) { movieResultsEl.innerHTML = '<div class="res-empty">No movies found for "' + esc(q) + '"</div>'; return; }
+    movieResultsEl.innerHTML = res.map((m) => `
+      <div class="res-item" data-id="${m.id}">
+        ${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}" loading="lazy">` : `<div class="res-thumb">🎬</div>`}
+        <div class="res-meta">
+          <div class="t">${esc(m.title)}</div>
+          <div class="s">${m.year || ""}${m.overview ? " · " + esc(m.overview.slice(0, 80)) + "…" : ""}</div>
+        </div>
+        <button class="res-add ${addedMovieIds.has(m.id) ? "added" : ""}" data-add="${m.id}">${addedMovieIds.has(m.id) ? "Added" : "+ Add"}</button>
+      </div>`).join("");
+  } catch (e) { movieResultsEl.innerHTML = '<div class="res-empty">' + esc(e.message) + "</div>"; }
+}
+
+movieResultsEl.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-add]");
+  if (!btn) return;
+  const id = Number(btn.dataset.add);
+  if (addedMovieIds.has(id)) return;
+  btn.disabled = true; btn.textContent = "Adding…";
+  try {
+    const r = await api("/api/movies", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    addedMovieIds.add(id);
+    btn.textContent = "Added"; btn.classList.add("added");
+    toast(r.alreadyAdded ? "Already in your library" : "Added to your library");
+    await loadMovies();
+  } catch (err) { toast(err.message, true); btn.disabled = false; btn.textContent = "+ Add"; }
+});
+
+// --- Movie Library ---
+let libraryMovies = [], movieFilter = "all", movieSort = "added", movieQuery = "";
+
+function initMovieLibraryControls() {
+  $("#moviesLibSearch").addEventListener("input", (e) => { movieQuery = e.target.value.trim().toLowerCase(); renderMovies(); });
+  $("#moviesFilter").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-filter]");
+    if (!b) return;
+    movieFilter = b.dataset.filter;
+    $("#moviesFilter").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    renderMovies();
+  });
+  $("#moviesSort").addEventListener("change", (e) => { movieSort = e.target.value; renderMovies(); });
+}
+
+async function loadMovies() {
+  try { libraryMovies = await api("/api/movies"); } catch { libraryMovies = []; }
+  addedMovieIds = new Set(libraryMovies.map((m) => m.id));
+  renderMovies();
+}
+
+function renderMovies() {
+  const lib = $("#moviesLibrary");
+  const toolbar = $("#moviesToolbar");
+  if (!libraryMovies.length) {
+    toolbar.style.display = "none";
+    lib.innerHTML = `<div class="empty"><div class="em">🎬</div><h3>No movies yet</h3><p>Use the button above to find a film — try "Inception", "The Godfather", or whatever you want to watch.</p></div>`;
+    return;
+  }
+  toolbar.style.display = "";
+  let list = libraryMovies.slice();
+  if (movieFilter === "watched") list = list.filter((m) => m.watched);
+  if (movieFilter === "unwatched") list = list.filter((m) => !m.watched);
+  if (movieQuery) list = list.filter((m) => m.title.toLowerCase().includes(movieQuery));
+  const cmp = { added: (a,b) => (b.added_at||0)-(a.added_at||0), az: (a,b) => a.title.localeCompare(b.title), za: (a,b) => b.title.localeCompare(a.title), newest: (a,b) => (b.year||"0000").localeCompare(a.year||"0000"), oldest: (a,b) => (a.year||"9999").localeCompare(b.year||"9999") }[movieSort];
+  if (cmp) list.sort(cmp);
+  if (!list.length) {
+    lib.innerHTML = `<div class="empty"><div class="em">🔍</div><h3>No matches</h3><p>No movies match your current filter${movieQuery ? " and search" : ""}.</p></div>`;
+    return;
+  }
+  lib.innerHTML = `<div class="grid">${list.map(movieCardHtml).join("")}</div>`;
+  lib.querySelectorAll(".card").forEach((c) => c.addEventListener("click", () => openMovieDetail(Number(c.dataset.id))));
+}
+
+function movieCardHtml(m) {
+  const runtime = m.runtime ? `${Math.floor(m.runtime / 60)}h ${m.runtime % 60}m` : null;
+  return `
+    <div class="card" data-id="${m.id}">
+      <div class="poster">
+        ${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}" loading="lazy">` : `<div class="ph">🎬</div>`}
+        ${m.watched ? `<div class="badge watched">✓ Watched</div>` : ""}
+      </div>
+      <div class="card-body">
+        <div class="name">${esc(m.title)}</div>
+        <div class="sub">${[m.year, runtime].filter(Boolean).join(" · ") || "&nbsp;"}</div>
+        <div class="movie-status ${m.watched ? "on" : ""}">
+          <span class="dot"></span>${m.watched ? "Watched" : "In watchlist"}
+        </div>
+      </div>
+    </div>`;
+}
+
+// --- Movie Detail ---
+let currentMovie = null;
+
+function openMovieDetail(id) {
+  currentMovie = libraryMovies.find((m) => m.id === id);
+  if (!currentMovie) return;
+  showPage("moviesDetail");
+  renderMovieDetail();
+}
+
+function closeMovieDetail() { currentMovie = null; renderMovies(); showPage("moviesHome"); }
+
+function renderMovieDetail() {
+  const m = currentMovie;
+  const runtime = m.runtime ? `${Math.floor(m.runtime / 60)}h ${m.runtime % 60}m` : null;
+  $("#moviesDetailBody").innerHTML = `
+    <button class="back" id="moviesBackBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      Library
+    </button>
+    <div class="show-head">
+      <div class="poster-lg">${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}">` : `<div class="ph">🎬</div>`}</div>
+      <div class="show-info">
+        <h1>${esc(m.title)}</h1>
+        <div class="chips">
+          ${m.year ? `<span class="chip">${esc(m.year)}</span>` : ""}
+          ${runtime ? `<span class="chip">${runtime}</span>` : ""}
+          ${(m.genres || []).slice(0, 4).map((g) => `<span class="chip">${esc(g)}</span>`).join("")}
+        </div>
+        <p class="summary">${esc(m.overview) || "No description available."}</p>
+        <div class="show-actions">
+          <button id="watchedBtn" class="btn-watched ${m.watched ? "on" : "off"}">
+            ${m.watched
+              ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Watched`
+              : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> Mark as watched`}
+          </button>
+          <button class="btn-danger" id="removeMovieBtn">Remove</button>
+        </div>
+      </div>
+    </div>`;
+  $("#moviesBackBtn").addEventListener("click", closeMovieDetail);
+  $("#watchedBtn").addEventListener("click", toggleMovieWatched);
+  $("#removeMovieBtn").addEventListener("click", removeCurrentMovie);
+}
+
+async function toggleMovieWatched() {
+  try {
+    const r = await api(`/api/movies/${currentMovie.id}/toggle`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    currentMovie.watched = r.watched ? 1 : 0;
+    // update in library array too
+    const idx = libraryMovies.findIndex((m) => m.id === currentMovie.id);
+    if (idx !== -1) libraryMovies[idx].watched = currentMovie.watched;
+    toast(currentMovie.watched ? "Marked as watched" : "Moved back to watchlist");
+    renderMovieDetail();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function removeCurrentMovie() {
+  if (!confirm(`Remove "${currentMovie.title}" from your library?`)) return;
+  try {
+    await api("/api/movies/" + currentMovie.id, { method: "DELETE" });
+    libraryMovies = libraryMovies.filter((m) => m.id !== currentMovie.id);
+    addedMovieIds.delete(currentMovie.id);
+    toast("Removed from library");
+    closeMovieDetail();
+  } catch (e) { toast(e.message, true); }
+}
+
+// ---------- Init ----------
+initTvLibraryControls();
+initMovieLibraryControls();
+loadTvLibrary();
+if (location.hash === "#movies") {
+  switchTab("movies");
+}
+</script>
+</body>
+</html>
