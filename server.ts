@@ -11,10 +11,14 @@ const db = new Database(dbPath);
 db.exec("PRAGMA journal_mode = WAL;");
 db.exec("PRAGMA foreign_keys = ON;");
 
-// Migration: drop old tables if shows is missing user_id or users table doesn't exist
-const showsCols = (db.query("PRAGMA table_info(shows)").all() as any[]).map((c) => c.name);
-const needsMigration = !showsCols.includes("user_id") ||
-  !db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
+// Migration: drop all tables if schema is out of date
+const usersExist = !!db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
+const showsExist = !!db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='shows'").get();
+const needsMigration = !usersExist || !showsExist || (() => {
+  const usersCols = (db.query("PRAGMA table_info(users)").all() as any[]).map((c) => c.name);
+  const showsCols = (db.query("PRAGMA table_info(shows)").all() as any[]).map((c) => c.name);
+  return !usersCols.includes("username") || !showsCols.includes("user_id");
+})();
 if (needsMigration) {
   db.exec(`
     DROP TABLE IF EXISTS episodes;
@@ -28,6 +32,7 @@ if (needsMigration) {
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT NOT NULL UNIQUE,
     email         TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     created_at    INTEGER NOT NULL
@@ -132,43 +137,49 @@ function createSession(userId: number): string {
 
 async function getSessionUser(
   req: Request
-): Promise<{ id: number; email: string } | null> {
+): Promise<{ id: number; username: string; email: string } | null> {
   const token = getCookie(req, "session_token");
   if (!token) return null;
   return (db
     .query(
-      `SELECT u.id, u.email FROM sessions s
+      `SELECT u.id, u.username, u.email FROM sessions s
        JOIN users u ON s.user_id = u.id
        WHERE s.token = ? AND s.expires_at > ?`
     )
-    .get(token, Date.now()) as { id: number; email: string } | null);
+    .get(token, Date.now()) as { id: number; username: string; email: string } | null);
 }
 
 // --- Auth routes ------------------------------------------------------------
 async function handleRegister(req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as {
+    username?: string;
     email?: string;
     password?: string;
   } | null;
+  const username = (body?.username || "").trim();
   const email = (body?.email || "").trim().toLowerCase();
   const password = body?.password || "";
 
+  if (!username || !/^[a-zA-Z0-9_]{3,20}$/.test(username))
+    return json({ error: "Username must be 3–20 characters (letters, numbers, underscores only)" }, 400);
   if (!email || !email.includes("@"))
     return json({ error: "Valid email required" }, 400);
   if (password.length < 6)
     return json({ error: "Password must be at least 6 characters" }, 400);
 
-  const existing = db.query("SELECT id FROM users WHERE email = ?").get(email);
-  if (existing) return json({ error: "Email already registered" }, 409);
+  if (db.query("SELECT id FROM users WHERE username = ?").get(username.toLowerCase()))
+    return json({ error: "Username already taken" }, 409);
+  if (db.query("SELECT id FROM users WHERE email = ?").get(email))
+    return json({ error: "Email already registered" }, 409);
 
   const password_hash = await Bun.password.hash(password);
   const result = db
-    .query("INSERT INTO users (email, password_hash, created_at) VALUES (?, ?, ?)")
-    .run(email, password_hash, Date.now());
+    .query("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, ?)")
+    .run(username.toLowerCase(), email, password_hash, Date.now());
   const userId = Number(result.lastInsertRowid);
   const token = createSession(userId);
 
-  return new Response(JSON.stringify({ id: userId, email }), {
+  return new Response(JSON.stringify({ id: userId, username: username.toLowerCase(), email }), {
     status: 201,
     headers: {
       "Content-Type": "application/json",
@@ -179,21 +190,21 @@ async function handleRegister(req: Request): Promise<Response> {
 
 async function handleLogin(req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as {
-    email?: string;
+    identifier?: string;
     password?: string;
   } | null;
-  const email = (body?.email || "").trim().toLowerCase();
+  const identifier = (body?.identifier || "").trim().toLowerCase();
   const password = body?.password || "";
 
   const user = db
-    .query("SELECT id, email, password_hash FROM users WHERE email = ?")
-    .get(email) as { id: number; email: string; password_hash: string } | null;
+    .query("SELECT id, username, email, password_hash FROM users WHERE email = ? OR username = ?")
+    .get(identifier, identifier) as { id: number; username: string; email: string; password_hash: string } | null;
 
   if (!user || !(await Bun.password.verify(password, user.password_hash)))
-    return json({ error: "Invalid email or password" }, 401);
+    return json({ error: "Invalid email, username, or password" }, 401);
 
   const token = createSession(user.id);
-  return new Response(JSON.stringify({ id: user.id, email: user.email }), {
+  return new Response(JSON.stringify({ id: user.id, username: user.username, email: user.email }), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
@@ -405,7 +416,9 @@ export default {
         return await handleLogout(req);
       if (pathname === "/api/auth/me" && req.method === "GET") {
         const user = await getSessionUser(req);
-        return user ? json(user) : json({ error: "Unauthorized" }, 401);
+        return user
+          ? json({ id: user.id, username: user.username, email: user.email })
+          : json({ error: "Unauthorized" }, 401);
       }
 
       // --- All routes below require a valid session ---

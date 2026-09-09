@@ -368,9 +368,13 @@
       <button class="auth-tab" id="authTabRegister">Sign up</button>
     </div>
     <form id="authForm">
+      <div class="auth-field" id="authUsernameField" style="display:none">
+        <label for="authUsername">Username</label>
+        <input type="text" id="authUsername" placeholder="coolwatcher99" autocomplete="username" pattern="[a-zA-Z0-9_]{3,20}" title="3–20 characters: letters, numbers, underscores" />
+      </div>
       <div class="auth-field">
-        <label for="authEmail">Email</label>
-        <input type="email" id="authEmail" required placeholder="you@example.com" autocomplete="email" />
+        <label for="authEmail" id="authEmailLabel">Email or username</label>
+        <input type="text" id="authEmail" required placeholder="Email or username" autocomplete="username" />
       </div>
       <div class="auth-field">
         <label for="authPassword">Password</label>
@@ -1094,7 +1098,7 @@ function showAuthPage() {
 function showAppPage() {
   document.getElementById("authPage").style.display = "none";
   document.getElementById("appShell").style.display = "";
-  document.getElementById("userEmail").textContent = currentUser.email;
+  document.getElementById("userEmail").textContent = "@" + currentUser.username;
 }
 
 async function initApp() {
@@ -1116,6 +1120,13 @@ function setAuthMode(mode) {
   authTabRegister.classList.toggle("on", mode === "register");
   authSubmitBtn.textContent = mode === "login" ? "Log in" : "Create account";
   authError.hidden = true;
+  const isRegister = mode === "register";
+  document.getElementById("authUsernameField").style.display = isRegister ? "" : "none";
+  document.getElementById("authUsername").required = isRegister;
+  document.getElementById("authEmailLabel").textContent = isRegister ? "Email" : "Email or username";
+  document.getElementById("authEmail").type = isRegister ? "email" : "text";
+  document.getElementById("authEmail").placeholder = isRegister ? "you@example.com" : "Email or username";
+  document.getElementById("authEmail").autocomplete = isRegister ? "email" : "username";
 }
 
 authTabLogin.addEventListener("click", () => setAuthMode("login"));
@@ -1132,19 +1143,22 @@ document.getElementById("pwToggle").addEventListener("click", () => {
 
 document.getElementById("authForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = document.getElementById("authEmail").value.trim();
   const password = document.getElementById("authPassword").value;
   authError.hidden = true;
   authSubmitBtn.disabled = true;
   authSubmitBtn.textContent = authMode === "login" ? "Logging in…" : "Creating account…";
   try {
     const path = authMode === "login" ? "/api/auth/login" : "/api/auth/register";
-    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
+    const payload = authMode === "login"
+      ? { identifier: document.getElementById("authEmail").value.trim(), password }
+      : { username: document.getElementById("authUsername").value.trim(), email: document.getElementById("authEmail").value.trim(), password };
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data.error || `Server error (${r.status})`);
     if (!data.id || !data.email) throw new Error("Unexpected server response — please try again");
     currentUser = data;
     document.getElementById("authEmail").value = "";
+    document.getElementById("authUsername").value = "";
     document.getElementById("authPassword").value = "";
     await initApp();
   } catch (err) {
