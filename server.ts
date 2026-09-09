@@ -392,11 +392,11 @@ export default {
     try {
       // --- Auth routes (no auth required) ---
       if (pathname === "/api/auth/register" && req.method === "POST")
-        return handleRegister(req);
+        return await handleRegister(req);
       if (pathname === "/api/auth/login" && req.method === "POST")
-        return handleLogin(req);
+        return await handleLogin(req);
       if (pathname === "/api/auth/logout" && req.method === "POST")
-        return handleLogout(req);
+        return await handleLogout(req);
       if (pathname === "/api/auth/me" && req.method === "GET") {
         const user = await getSessionUser(req);
         return user ? json(user) : json({ error: "Unauthorized" }, 401);

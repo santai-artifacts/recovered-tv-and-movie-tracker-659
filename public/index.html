@@ -1140,8 +1140,8 @@ document.getElementById("authForm").addEventListener("submit", async (e) => {
   try {
     const path = authMode === "login" ? "/api/auth/login" : "/api/auth/register";
     const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || "Something went wrong");
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || `Server error (${r.status})`);
     currentUser = data;
     document.getElementById("authEmail").value = "";
     document.getElementById("authPassword").value = "";
