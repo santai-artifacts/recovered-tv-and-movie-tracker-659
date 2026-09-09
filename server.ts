@@ -11,12 +11,18 @@ const db = new Database(dbPath);
 db.exec("PRAGMA journal_mode = WAL;");
 db.exec("PRAGMA foreign_keys = ON;");
 
-// One-time migration: if users table doesn't exist yet, drop the old single-user tables
-const hasUsers = db
-  .query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
-  .get();
-if (!hasUsers) {
-  db.exec(`DROP TABLE IF EXISTS episodes; DROP TABLE IF EXISTS shows; DROP TABLE IF EXISTS movies;`);
+// Migration: drop old tables if shows is missing user_id or users table doesn't exist
+const showsCols = (db.query("PRAGMA table_info(shows)").all() as any[]).map((c) => c.name);
+const needsMigration = !showsCols.includes("user_id") ||
+  !db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get();
+if (needsMigration) {
+  db.exec(`
+    DROP TABLE IF EXISTS episodes;
+    DROP TABLE IF EXISTS shows;
+    DROP TABLE IF EXISTS movies;
+    DROP TABLE IF EXISTS sessions;
+    DROP TABLE IF EXISTS users;
+  `);
 }
 
 db.exec(`

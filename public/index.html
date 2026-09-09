@@ -1142,6 +1142,7 @@ document.getElementById("authForm").addEventListener("submit", async (e) => {
     const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data.error || `Server error (${r.status})`);
+    if (!data.id || !data.email) throw new Error("Unexpected server response — please try again");
     currentUser = data;
     document.getElementById("authEmail").value = "";
     document.getElementById("authPassword").value = "";
