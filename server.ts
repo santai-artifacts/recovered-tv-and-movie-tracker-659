@@ -421,6 +421,12 @@ export default {
           : json({ error: "Unauthorized" }, 401);
       }
 
+      // Serve static files (public — no auth required)
+      const stat = await serveStatic(pathname);
+      if (stat) return stat;
+      const index = await serveStatic("/");
+      if (index) return index;
+
       // --- All routes below require a valid session ---
       const user = await getSessionUser(req);
       if (!user) return json({ error: "Unauthorized" }, 401);
@@ -529,11 +535,6 @@ export default {
         return json({ id, watched: !!row?.watched });
       }
 
-      // Static
-      const stat = await serveStatic(pathname);
-      if (stat) return stat;
-      const index = await serveStatic("/");
-      if (index) return index;
       return new Response("Not found", { status: 404 });
     } catch (err: any) {
       console.error(err);
