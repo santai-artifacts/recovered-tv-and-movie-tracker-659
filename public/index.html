@@ -327,6 +327,10 @@
   .auth-submit { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .2s; margin-top: 4px; }
   .auth-submit:hover { background: var(--accent-2); }
   .auth-submit:disabled { opacity: .6; cursor: default; }
+  .pw-wrap { position: relative; }
+  .pw-wrap input { padding-right: 42px; }
+  .pw-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--faint); cursor: pointer; padding: 4px; display: flex; transition: color .15s; }
+  .pw-toggle:hover { color: var(--muted); }
   /* User menu in header */
   .head-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
   .user-email { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
@@ -370,7 +374,12 @@
       </div>
       <div class="auth-field">
         <label for="authPassword">Password</label>
-        <input type="password" id="authPassword" required placeholder="••••••••" minlength="6" autocomplete="current-password" />
+        <div class="pw-wrap">
+          <input type="password" id="authPassword" required placeholder="••••••••" minlength="6" autocomplete="current-password" />
+          <button type="button" id="pwToggle" class="pw-toggle" aria-label="Show password">
+            <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <p class="auth-error" id="authError" hidden></p>
       <button type="submit" class="auth-submit" id="authSubmit">Log in</button>
@@ -1111,6 +1120,15 @@ function setAuthMode(mode) {
 
 authTabLogin.addEventListener("click", () => setAuthMode("login"));
 authTabRegister.addEventListener("click", () => setAuthMode("register"));
+
+document.getElementById("pwToggle").addEventListener("click", () => {
+  const input = document.getElementById("authPassword");
+  const showing = input.type === "text";
+  input.type = showing ? "password" : "text";
+  document.getElementById("eyeIcon").innerHTML = showing
+    ? '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'
+    : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-8-10-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+});
 
 document.getElementById("authForm").addEventListener("submit", async (e) => {
   e.preventDefault();
