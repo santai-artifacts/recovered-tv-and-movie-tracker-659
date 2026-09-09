@@ -309,6 +309,30 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .center-load { display: flex; justify-content: center; padding: 60px; }
 
+  /* Auth page */
+  #authPage { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; }
+  .auth-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 36px 32px; box-shadow: var(--shadow); }
+  .auth-logo { display: flex; align-items: center; gap: 10px; font-family: "Sora"; font-weight: 700; font-size: 22px; margin-bottom: 6px; }
+  .auth-logo .logo { width: 36px; height: 36px; }
+  .auth-logo span { color: var(--accent-2); }
+  .auth-subtitle { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+  .auth-tabs { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 3px; gap: 2px; margin-bottom: 22px; }
+  .auth-tab { flex: 1; padding: 9px; border: none; background: transparent; color: var(--muted); border-radius: 4px; font-size: 14px; font-weight: 500; transition: background .15s, color .15s; font-family: inherit; cursor: pointer; }
+  .auth-tab.on { background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .auth-field input { width: 100%; padding: 11px 13px; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 6px; font-size: 15px; font-family: inherit; outline: none; transition: border-color .2s, box-shadow .2s; }
+  .auth-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,109,246,.18); }
+  .auth-error { color: var(--danger); font-size: 13px; margin: -6px 0 12px; }
+  .auth-submit { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .2s; margin-top: 4px; }
+  .auth-submit:hover { background: var(--accent-2); }
+  .auth-submit:disabled { opacity: .6; cursor: default; }
+  /* User menu in header */
+  .head-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .user-email { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .btn-logout { background: transparent; border: 1px solid var(--line); color: var(--muted); padding: 7px 12px; border-radius: 5px; font-size: 13px; font-family: inherit; cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
+  .btn-logout:hover { background: var(--surface-2); color: var(--text); }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
   @media (max-width: 600px) {
     .head-inner { gap: 10px; }
@@ -327,6 +351,36 @@
 </head>
 <body>
 
+<!-- Auth screen -->
+<div id="authPage">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo">🎬</div>
+      Binge<span>keeper</span>
+    </div>
+    <p class="auth-subtitle">Track every episode and film you watch.</p>
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="authTabLogin">Log in</button>
+      <button class="auth-tab" id="authTabRegister">Sign up</button>
+    </div>
+    <form id="authForm">
+      <div class="auth-field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" required placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" required placeholder="••••••••" minlength="6" autocomplete="current-password" />
+      </div>
+      <p class="auth-error" id="authError" hidden></p>
+      <button type="submit" class="auth-submit" id="authSubmit">Log in</button>
+    </form>
+  </div>
+</div>
+
+<!-- Main app shell (hidden until logged in) -->
+<div id="appShell" style="display:none">
+
 <header>
   <div class="head-inner">
     <div class="brand">
@@ -341,10 +395,14 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>Movies
       </button>
     </nav>
-    <button class="add-btn" id="addBtn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      <span id="addBtnLabel">Add a show</span>
-    </button>
+    <div class="head-right">
+      <button class="add-btn" id="addBtn" style="margin-left:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span id="addBtnLabel">Add a show</span>
+      </button>
+      <span class="user-email" id="userEmail"></span>
+      <button class="btn-logout" id="logoutBtn">Log out</button>
+    </div>
   </div>
 </header>
 
@@ -455,10 +513,17 @@
 
 <div class="toast" id="toast"></div>
 
+</div><!-- #appShell -->
+
 <script>
 const $ = (s, r = document) => r.querySelector(s);
 const api = async (path, opts) => {
   const r = await fetch(path, opts);
+  if (r.status === 401) {
+    document.getElementById("appShell").style.display = "none";
+    document.getElementById("authPage").style.display = "flex";
+    throw new Error("Session expired — please log in again");
+  }
   if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || "Request failed"); }
   return r.json();
 };
@@ -595,7 +660,7 @@ function initTvLibraryControls() {
 
 async function loadTvLibrary() {
   try { libraryShows = await api("/api/shows"); } catch { libraryShows = []; }
-  addedShowIds = new Set(libraryShows.map((s) => s.id));
+  addedShowIds = new Set(libraryShows.map((s) => s.tvmaze_id));
   renderTvLibrary();
 }
 
@@ -892,7 +957,7 @@ function initMovieLibraryControls() {
 
 async function loadMovies() {
   try { libraryMovies = await api("/api/movies"); } catch { libraryMovies = []; }
-  addedMovieIds = new Set(libraryMovies.map((m) => m.id));
+  addedMovieIds = new Set(libraryMovies.map((m) => m.tmdb_id));
   renderMovies();
 }
 
@@ -999,19 +1064,102 @@ async function removeCurrentMovie() {
   try {
     await api("/api/movies/" + currentMovie.id, { method: "DELETE" });
     libraryMovies = libraryMovies.filter((m) => m.id !== currentMovie.id);
-    addedMovieIds.delete(currentMovie.id);
+    addedMovieIds.delete(currentMovie.tmdb_id);
     toast("Removed from library");
     closeMovieDetail();
   } catch (e) { toast(e.message, true); }
 }
 
-// ---------- Init ----------
+// ---------- Auth + Init ----------
 initTvLibraryControls();
 initMovieLibraryControls();
-loadTvLibrary();
-if (location.hash === "#movies") {
-  switchTab("movies");
+
+let currentUser = null;
+
+function showAuthPage() {
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("authPage").style.display = "flex";
+  currentUser = null;
 }
+
+function showAppPage() {
+  document.getElementById("authPage").style.display = "none";
+  document.getElementById("appShell").style.display = "";
+  document.getElementById("userEmail").textContent = currentUser.email;
+}
+
+async function initApp() {
+  showAppPage();
+  await loadTvLibrary();
+  if (location.hash === "#movies") switchTab("movies");
+}
+
+// Auth mode toggle
+let authMode = "login";
+const authTabLogin = document.getElementById("authTabLogin");
+const authTabRegister = document.getElementById("authTabRegister");
+const authSubmitBtn = document.getElementById("authSubmit");
+const authError = document.getElementById("authError");
+
+function setAuthMode(mode) {
+  authMode = mode;
+  authTabLogin.classList.toggle("on", mode === "login");
+  authTabRegister.classList.toggle("on", mode === "register");
+  authSubmitBtn.textContent = mode === "login" ? "Log in" : "Create account";
+  authError.hidden = true;
+}
+
+authTabLogin.addEventListener("click", () => setAuthMode("login"));
+authTabRegister.addEventListener("click", () => setAuthMode("register"));
+
+document.getElementById("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  authError.hidden = true;
+  authSubmitBtn.disabled = true;
+  authSubmitBtn.textContent = authMode === "login" ? "Logging in…" : "Creating account…";
+  try {
+    const path = authMode === "login" ? "/api/auth/login" : "/api/auth/register";
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Something went wrong");
+    currentUser = data;
+    document.getElementById("authEmail").value = "";
+    document.getElementById("authPassword").value = "";
+    await initApp();
+  } catch (err) {
+    authError.textContent = err.message;
+    authError.hidden = false;
+  } finally {
+    authSubmitBtn.disabled = false;
+    authSubmitBtn.textContent = authMode === "login" ? "Log in" : "Create account";
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+  libraryShows = [];
+  libraryMovies = [];
+  addedShowIds = new Set();
+  addedMovieIds = new Set();
+  showAuthPage();
+});
+
+// Boot: check existing session
+(async () => {
+  try {
+    const r = await fetch("/api/auth/me");
+    if (r.ok) {
+      currentUser = await r.json();
+      await initApp();
+    } else {
+      showAuthPage();
+    }
+  } catch {
+    showAuthPage();
+  }
+})();
 </script>
 </body>
 </html>
