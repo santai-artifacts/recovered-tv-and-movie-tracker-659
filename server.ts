@@ -421,11 +421,13 @@ export default {
           : json({ error: "Unauthorized" }, 401);
       }
 
-      // Serve static files (public — no auth required)
-      const stat = await serveStatic(pathname);
-      if (stat) return stat;
-      const index = await serveStatic("/");
-      if (index) return index;
+      // Serve static files (public — no auth required, only for non-API paths)
+      if (!pathname.startsWith("/api/")) {
+        const stat = await serveStatic(pathname);
+        if (stat) return stat;
+        const index = await serveStatic("/");
+        if (index) return index;
+      }
 
       // --- All routes below require a valid session ---
       const user = await getSessionUser(req);
