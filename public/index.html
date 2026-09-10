@@ -134,13 +134,8 @@
   .res-add.added { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); cursor: default; }
   .res-empty, .res-loading { padding: 24px; text-align: center; color: var(--muted); font-size: 14px; }
 
-  /* Hero */
-  .hero { padding: 48px 0 28px; }
-  .hero h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.05; }
-  .hero p { color: var(--muted); margin: 12px 0 0; font-size: 15.5px; max-width: 520px; line-height: 1.6; }
-
   /* Toolbar */
-  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 4px 0 24px; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 28px 0 24px; }
   .lib-search { position: relative; flex: 1; min-width: 190px; max-width: 300px; }
   .lib-search input {
     width: 100%; padding: 9px 12px 9px 36px; background: var(--surface); border: 1px solid var(--line);
@@ -459,10 +454,6 @@
 <!-- TV HOME -->
 <div id="tvHome">
   <div class="wrap">
-    <section class="hero">
-      <h1>Your shows, tracked to the episode.</h1>
-      <p>Search for any series, add it, and tick off episodes season by season. Your progress is saved automatically.</p>
-    </section>
     <div class="toolbar" id="tvToolbar" style="display:none">
       <div class="lib-search">
         <span class="icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
@@ -496,10 +487,6 @@
 <!-- MOVIES HOME -->
 <div id="moviesHome" style="display:none">
   <div class="wrap">
-    <section class="hero">
-      <h1>Your watchlist, tracked.</h1>
-      <p>Search for any film, add it to your list, and mark it watched when you're done.</p>
-    </section>
     <div class="toolbar" id="moviesToolbar" style="display:none">
       <div class="lib-search">
         <span class="icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
