@@ -193,7 +193,6 @@
 
   /* Empty state */
   .empty { text-align: center; padding: 80px 20px; border: 1px solid var(--line); margin-top: 12px; }
-  .empty .em { font-size: 40px; }
   .empty h3 { font-family: "DM Serif Display", Georgia, serif; font-size: 22px; font-weight: 400; margin: 14px 0 8px; }
   .empty p { color: var(--muted); margin: 0 auto; max-width: 360px; line-height: 1.6; font-size: 14px; }
 
@@ -660,7 +659,7 @@ function renderTvLibrary() {
   const toolbar = $("#tvToolbar");
   if (!libraryShows.length) {
     toolbar.style.display = "none";
-    lib.innerHTML = `<div class="empty"><div class="em">🍿</div><h3>No shows yet</h3><p>Use the button above to find a show — try "Breaking Bad", "The Office", or anything you're watching.</p></div>`;
+    lib.innerHTML = `<div class="empty"><h3>No shows yet</h3><p>Use the button above to find a show — try "Breaking Bad", "The Office", or anything you're watching.</p></div>`;
     return;
   }
   toolbar.style.display = "";
@@ -670,7 +669,7 @@ function renderTvLibrary() {
   const cmp = { added: (a,b) => (b.added_at||0)-(a.added_at||0), az: (a,b) => a.name.localeCompare(b.name), za: (a,b) => b.name.localeCompare(a.name), newest: (a,b) => (b.premiered||"").localeCompare(a.premiered||""), oldest: (a,b) => (a.premiered||"0000").localeCompare(b.premiered||"9999") }[libSort];
   if (cmp) list.sort(cmp);
   if (!list.length) {
-    lib.innerHTML = `<div class="empty"><div class="em">🔍</div><h3>No matches</h3><p>No shows match your current filter${libQuery ? " and search" : ""}.</p></div>`;
+    lib.innerHTML = `<div class="empty"><h3>No matches</h3><p>No shows match your current filter${libQuery ? " and search" : ""}.</p></div>`;
     return;
   }
   lib.innerHTML = `<div class="grid">${list.map(tvCardHtml).join("")}</div>`;
@@ -957,7 +956,7 @@ function renderMovies() {
   const toolbar = $("#moviesToolbar");
   if (!libraryMovies.length) {
     toolbar.style.display = "none";
-    lib.innerHTML = `<div class="empty"><div class="em">🍿</div><h3>No movies yet</h3><p>Use the button above to find a film — try "Inception", "The Godfather", or whatever you want to watch.</p></div>`;
+    lib.innerHTML = `<div class="empty"><h3>No movies yet</h3><p>Use the button above to find a film — try "Inception", "The Godfather", or whatever you want to watch.</p></div>`;
     return;
   }
   toolbar.style.display = "";
@@ -968,7 +967,7 @@ function renderMovies() {
   const cmp = { added: (a,b) => (b.added_at||0)-(a.added_at||0), az: (a,b) => a.title.localeCompare(b.title), za: (a,b) => b.title.localeCompare(a.title), newest: (a,b) => (b.year||"0000").localeCompare(a.year||"0000"), oldest: (a,b) => (a.year||"9999").localeCompare(b.year||"9999") }[movieSort];
   if (cmp) list.sort(cmp);
   if (!list.length) {
-    lib.innerHTML = `<div class="empty"><div class="em">🔍</div><h3>No matches</h3><p>No movies match your current filter${movieQuery ? " and search" : ""}.</p></div>`;
+    lib.innerHTML = `<div class="empty"><h3>No matches</h3><p>No movies match your current filter${movieQuery ? " and search" : ""}.</p></div>`;
     return;
   }
   lib.innerHTML = `<div class="grid">${list.map(movieCardHtml).join("")}</div>`;
