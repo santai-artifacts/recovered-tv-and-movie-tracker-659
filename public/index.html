@@ -5,7 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Bingekeeper — TV & Movies Tracker</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/favicon.svg">
+<script>
+(function(){
+  var c=document.createElement('canvas');c.width=c.height=128;
+  var x=c.getContext('2d');
+  x.fillStyle='#18160f';x.fillRect(0,0,128,128);
+  x.fillStyle='#f5f2ec';x.beginPath();x.moveTo(44,32);x.lineTo(100,64);x.lineTo(44,96);x.closePath();x.fill();
+  var png=c.toDataURL('image/png');
+  var l=document.createElement('link');l.rel='icon';l.type='image/png';l.href=png;document.head.appendChild(l);
+  var a=document.createElement('link');a.rel='apple-touch-icon';a.href=png;document.head.appendChild(a);
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
