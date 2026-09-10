@@ -364,7 +364,7 @@
 <div id="authPage">
   <div class="auth-card">
     <div class="auth-logo">
-      <div class="logo">🎬</div>
+      <div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
       Binge<span>keeper</span>
     </div>
     <p class="auth-subtitle">Track every episode and film you watch.</p>
@@ -402,7 +402,7 @@
 <header>
   <div class="head-inner">
     <div class="brand">
-      <div class="logo">🎬</div>
+      <div class="logo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
       Binge<span>keeper</span>
     </div>
     <nav class="tab-nav">
@@ -933,7 +933,7 @@ async function runMovieSearch(q) {
     if (!res.length) { movieResultsEl.innerHTML = '<div class="res-empty">No movies found for "' + esc(q) + '"</div>'; return; }
     movieResultsEl.innerHTML = res.map((m) => `
       <div class="res-item" data-id="${m.id}">
-        ${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}" loading="lazy">` : `<div class="res-thumb">🎬</div>`}
+        ${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}" loading="lazy">` : `<div class="res-thumb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg></div>`}
         <div class="res-meta">
           <div class="t">${esc(m.title)}</div>
           <div class="s">${m.year || ""}${m.overview ? " · " + esc(m.overview.slice(0, 80)) + "…" : ""}</div>
@@ -984,7 +984,7 @@ function renderMovies() {
   const toolbar = $("#moviesToolbar");
   if (!libraryMovies.length) {
     toolbar.style.display = "none";
-    lib.innerHTML = `<div class="empty"><div class="em">🎬</div><h3>No movies yet</h3><p>Use the button above to find a film — try "Inception", "The Godfather", or whatever you want to watch.</p></div>`;
+    lib.innerHTML = `<div class="empty"><div class="em">🍿</div><h3>No movies yet</h3><p>Use the button above to find a film — try "Inception", "The Godfather", or whatever you want to watch.</p></div>`;
     return;
   }
   toolbar.style.display = "";
@@ -1007,7 +1007,7 @@ function movieCardHtml(m) {
   return `
     <div class="card" data-id="${m.id}">
       <div class="poster">
-        ${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}" loading="lazy">` : `<div class="ph">🎬</div>`}
+        ${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}" loading="lazy">` : `<div class="ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg></div>`}
         ${m.watched ? `<div class="badge watched">✓ Watched</div>` : ""}
       </div>
       <div class="card-body">
@@ -1041,7 +1041,7 @@ function renderMovieDetail() {
       Library
     </button>
     <div class="show-head">
-      <div class="poster-lg">${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}">` : `<div class="ph">🎬</div>`}</div>
+      <div class="poster-lg">${m.poster ? `<img src="${esc(m.poster)}" alt="${esc(m.title)}">` : `<div class="ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg></div>`}</div>
       <div class="show-info">
         <h1>${esc(m.title)}</h1>
         <div class="chips">
