@@ -325,16 +325,75 @@
   .btn-logout:hover { color: var(--text); }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
-  @media (max-width: 600px) {
-    .head-inner { gap: 10px; padding: 12px 16px; }
-    .brand { font-size: 18px; }
+  @media (max-width: 640px) {
+    /* Header: row 1 = brand + add btn, row 2 = tabs */
+    .head-inner {
+      padding: 12px 16px 0;
+      gap: 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .brand { font-size: 17px; flex: 1; }
+    .tab-nav {
+      order: 10;
+      width: 100%;
+      margin-top: 10px;
+      border-top: 1px solid var(--line);
+      padding: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      margin-right: 0;
+      padding: 12px 0;
+      text-align: center;
+      font-size: 12.5px;
+      border-bottom: 2px solid transparent;
+      border-bottom-color: inherit;
+    }
+    .tab-btn.on { border-bottom-color: var(--text); }
+    .head-right { gap: 8px; }
+    .user-email { display: none; }
     .add-btn { padding: 7px 12px; font-size: 12.5px; }
-    .modal-overlay { padding: 5vh 14px 14px; }
-    .show-head .poster-lg { width: 130px; margin: 0 auto; }
-    .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .btn-logout { font-size: 12px; }
+    .tab-btn svg { display: none; }
+
+    /* Wrap */
+    .wrap { padding: 0 16px 60px; }
+
+    /* Toolbar: stack cleanly */
+    .toolbar { flex-direction: column; align-items: stretch; gap: 8px; margin: 20px 0 18px; }
+    .lib-search { max-width: 100%; min-width: 0; }
+    .segmented { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .segmented button { flex-shrink: 0; }
+    .lib-sort { margin-left: 0; }
+    .lib-sort select { width: 100%; }
+
+    /* Grid: 2 columns on small screens */
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .card-body { padding: 8px 0 0; }
     .card-body .name { font-size: 12px; }
     .card-body .sub { font-size: 10.5px; }
-    .badge { font-size: 9px; padding: 2px 6px; top: 5px; right: 5px; }
+    .badge { font-size: 9px; padding: 2px 6px; }
+
+    /* Show detail */
+    .show-head { flex-direction: column; gap: 16px; }
+    .show-head .poster-lg { width: 140px; }
+    .show-info { min-width: 0; padding-top: 0; }
+    .show-info h1 { font-size: 24px; }
+    .overall { min-width: 0; width: 100%; }
+
+    /* Seasons / episodes */
+    .season-head { padding: 12px 14px; gap: 10px; }
+    .season-head .mini-bar { display: none; }
+    .ep { padding: 10px 14px; gap: 10px; }
+    .ep-num { width: 32px; }
+
+    /* Auth */
+    .auth-card { padding: 28px 20px; margin: 0 4px; }
+
+    /* Modal */
+    .modal-overlay { padding: 4vh 12px 12px; }
+    .modal-card { padding: 14px; }
   }
 </style>
 </head>
